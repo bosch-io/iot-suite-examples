@@ -266,6 +266,6 @@ go build .
 .\blob-upload -f <path-to-file>
 ```
 
-The program takes two command-line flags. The file to be uploaded is specified with the mandatory '-f' flag. The URI of the Edge Agent MQTT broker can be specified with the optional '-b' flag. If omitted it defaults to 'tcp://edgehost:1883'.
+The program takes two command-line flags. The file to be uploaded is specified with the mandatory `-f` flag. The URI of the Edge Agent MQTT broker can be specified with the optional `-b` flag. If omitted it defaults to `tcp://edgehost:1883`.
 
 ### TBD - in-depth explanation
