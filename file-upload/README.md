@@ -92,7 +92,7 @@ will transform the response of the AWS Lambda into a`triggerUpload` operation.
 
 ### Provision the Device
 
-TODO: show device provisioning via developer console
+To provision the device follow the [Provision a Linux-based device](https://docs.bosch-iot-suite.com/edge/index.html#110336.htm) steps from [Bosch IoT Edge documentation](https://docs.bosch-iot-suite.com/edge/#108408.htm).
 
 #### Policy
 
