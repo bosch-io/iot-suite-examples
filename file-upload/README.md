@@ -129,18 +129,115 @@ ID of your Bosch IoT Things Solution):
 The Webhook to the Lambda can be established by configuring an HTTP connection within Bosch IoT Things.
 
 1. Create a new HTTP connection and give it some expressive name. In this case we've chosen "Lambda".
-   ![Create HTTP connection](webhook_create.png)
+   ![Create HTTP connection](img/webhook_create.png)
 2. Configure the connection with the URL and credentials of your Lambda.
-   ![Webhook Coordinates](webhook_coordinates.png)
+   ![Webhook Coordinates](img/webhook_coordinates.png)
 3. Add a target which uses HTTP POST to publish Live messages to the `/requestUpload` endpoint of your Lambda. Use the
    authorization subject we defined in the Policy Entry earlier (`integration:${yourSolutionId}:request-upload`). To
    provide the `device-id` header with the correct ID of the device specify a header
    mapping `device-id ⇾ {{ thing:id }}`.
-   ![HTTP connection Target](webhook_target.png)
+   ![HTTP connection Target](img/webhook_target.png)
 4. Last but not least we need to enable the live message mapping. This will extract the payload of the live message and
    publishes only the payload to the Lambda.
-   ![HTTP connection payload mapping](webhook_payloadmapping.png)
+   ![HTTP connection payload mapping](img/webhook_payloadmapping.png)
 
 ### IoT Hub Connection
+The IoT Hub Connection is the channel where Bosch IoT Things receives messages sent from the device and publishes messages to the device.
+In order to make the response of the AWS lambda look like a `triggerUpload` operation, it's required to add a custom JavaScript-based payload mapping.
+Please edit the Connection with the name `Devices via Bosch IoT Hub` which should be created automatically, after booking a Device Management Package of the Bosch IoT Suite.
+![Enable JavaScript-based payload mapping](img/hub_enable_payload_mapping.png)
 
+The incoming script expects the messages to already be in Ditto Protocol format. It parses both, textual payload or binary payload, as Ditto Protocol message.
+
+```
+/**
+ * Maps the passed parameters to a Ditto Protocol message.
+ * @param {Object.<string, string>} headers - The headers Object containing all received header values
+ * @param {string} [textPayload] - The String to be mapped
+ * @param {ArrayBuffer} [bytePayload] - The bytes to be mapped as ArrayBuffer
+ * @param {string} [contentType] - The received Content-Type, e.g. "application/json"
+ * @returns {(DittoProtocolMessage|Array<DittoProtocolMessage>)} dittoProtocolMessage(s) -
+ *  The mapped Ditto Protocol message,
+ *  an array of Ditto Protocol messages or
+ *  <code>null</code> if the message could/should not be mapped
+ */
+function mapToDittoProtocolMsg(
+  headers,
+  textPayload,
+  bytePayload,
+  contentType
+) {
+
+  let dittoProtocolMsg = null;
+  if (contentType === 'application/vnd.eclipse.ditto+json') {
+    // Used if a ditto protocol message is sent as text payload.
+    dittoProtocolMsg = JSON.parse(textPayload);
+  } else if (contentType === 'application/octet-stream') {
+    // Used if a ditto protocol message is sent as binary payload.
+    dittoProtocolMsg = JSON.parse(Ditto.arrayBufferToString(bytePayload));
+  }
+  // If not if-clause matched, the message is still be null and will be dropped.
+  return dittoProtocolMsg;
+}
+```
+
+The script for outgoing messages adds a special handling for the response to the `requestUpload` message. It transforms the response to a `triggerUpload` live message.
+```
+/**
+ * Maps the passed parameters which originated from a Ditto Protocol message to an external message.
+ * @param {string} namespace - The namespace of the entity in java package notation, e.g.: "org.eclipse.ditto"
+ * @param {string} id - The ID of the entity
+ * @param {string} channel - The channel for the signal, one of: "twin"|"live"
+ * @param {string} group - The affected group/entity, one of: "things"
+ * @param {string} criterion - The criterion to apply, one of: "commands"|"events"|"search"|"messages"|"errors"
+ * @param {string} action - The action to perform (one of: "create"|"retrieve"|"modify"|"delete"),
+ * or the subject of a message
+ * @param {string} path - The path which is affected by the message (e.g.: "/attributes"), or the destination
+ * of a message (e.g.: "inbox"|"outbox")
+ * @param {Object.<string, string>} dittoHeaders - The headers Object containing all Ditto Protocol header values
+ * @param {*} [value] - The value to apply / which was applied (e.g. in a "modify" action)
+ * @param {number} status - The status code that indicates the result of the command.
+ * @param {Object} extra - The enriched extra fields when selected via "extraFields" option.
+ * @returns {(ExternalMessage|Array<ExternalMessage>)} externalMessage -
+ *  The mapped external message,
+ *  an array of external messages or
+ *  <code>null</code> if the message could/should not be mapped
+ */
+function mapFromDittoProtocolMsg(
+  namespace,
+  id,
+  group,
+  channel,
+  criterion,
+  action,
+  path,
+  dittoHeaders,
+  value,
+  status,
+  extra
+) {
+
+  let dittoProtocolMessage;  
+
+  if(action === "requestUpload") {
+    // Transform the response of a "requestUpload" message to a "triggerUpload" operation.
+    let newAction = "triggerUpload";
+    let newPath = "/features/BLOBUpload/inbox/messages/triggerUpload";
+    let newDittoHeaders = {
+      'x-things-parameter-order' : dittoHeaders['x-things-parameter-order']
+    };
+    let newStatus = undefined; // Initialize with undefined to avoid having a status in the "triggerUpload" message
+    dittoProtocolMessage = Ditto.buildDittoProtocolMsg(namespace, id, group, channel, criterion, newAction, newPath, newDittoHeaders, value, newStatus, extra);
+  } else {
+    dittoProtocolMessage = Ditto.buildDittoProtocolMsg(namespace, id, group, channel, criterion, action, path, dittoHeaders, value, status, extra);
+  }
+ 
+  let headers = {};
+  let textPayload = JSON.stringify(dittoProtocolMessage);
+  let bytePayload = null;
+  let contentType = 'application/vnd.eclipse.ditto+json';
+
+  return Ditto.buildExternalMsg(headers, textPayload, bytePayload, contentType);
+}
+```
 ## Device?
