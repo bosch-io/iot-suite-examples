@@ -268,4 +268,23 @@ go build .
 
 The program takes two command-line flags. The file to be uploaded is specified with the mandatory `-f` flag. The URI of the Edge Agent MQTT broker can be specified with the optional `-b` flag. If omitted it defaults to `tcp://edgehost:1883`.
 
-### TBD - in-depth explanation
+### Code Overview
+
+Following is an overview of [blob-upload.go](src/device/blob-upload.go) functions
+
+* `func init()` initializes the `filePath` and `mqttBrokerURI` variables from the command-line flags and checks if the specified file exists.
+
+* `func main()` 
+  * uses `fetchDeviceInfo()` to fetch the `deviceID` and `tenantID` from the Edge Agent
+  * initializes the `dittoClient` with the `mqttBrokerURI`, `connectHandler` and `messageHandler` functions are set as handlers
+  * the program waits on the `chstop` channel for exit signal. The signal may come from the system (SIGINT/SIGTERM signals) or the program itself - after the file is successfully uploaded.
+
+* `func connectHandler(client *ditto.Client)` - upon connect creates the BLOBUpload feature and calls `sendUploadRequest(filePath, client)` with the `filePath` variable initialized in the `init()` function
+
+* `func sendUploadRequest(filePath string, client *ditto.Client)` - sends `requestUpload` message for the given `filePath`
+
+* `func messageHandler(requestID string, msg *protocol.Message)` - upon receiving `triggerUpload` message calls `uploadFile(filePath, urlStr)` function with the file path and pre-signed URL from the message
+
+* `func uploadFile(filePath string, urlStr string)` - uploads the given file using the provided pre-signed URL with a PUT HTTP request. If the upload is successful, writes to the `chstop` channel to trigger program exit
+
+* `func fetchDeviceInfo() (string, string)` - fetches device and tenant IDs from the Edge Agent. For details see [Receive local Thing parameters](https://docs.bosch-iot-suite.com/edge/index.html#109655.htm)
