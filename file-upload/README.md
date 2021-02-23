@@ -240,4 +240,32 @@ function mapFromDittoProtocolMsg(
   return Ditto.buildExternalMsg(headers, textPayload, bytePayload, contentType);
 }
 ```
-## Device?
+## Device
+
+On the device we have a Go program ([blob-upload.go](src/device/blob-upload.go)) that imlements the BLOBUpload Vorto feature. It communicates with the IoT Hub through the local MQTT broker of the Edge Agent. 
+
+The program demonstrates the simplest use case - it sends a 'requestUpload' message for a single file specified with the '-f' command-line flag and listens for the 'triggerUpload' response. Upon receiving it, the provided pre-signed URL is used to upload the file, after which the program exits. Adding events for upload progress, success or failure is left as an exercise for the reader.
+
+[Eclipse Ditto Client SDK for Golang](https://github.com/eclipse/ditto-clients-golang) is used for communication over the Ditto protocol.
+
+### Usage
+
+To run/build the program [Go](https://golang.org/doc/install) v1.15+ is required.
+
+Execute the following command in [src/device](src/device) directory to run the program:
+
+```
+go run . -f <path-to-file>
+```
+
+Alternatively you can first build the program to executable and then run it: 
+
+```
+go build .
+
+.\blob-upload -f <path-to-file>
+```
+
+The program takes two command-line flags. The file to be uploaded is specified with the mandatory '-f' flag. The URI of the Edge Agent MQTT broker can be specified with the optional '-b' flag. If omitted it defaults to 'tcp://edgehost:1883'.
+
+### TBD - in-depth explanation
