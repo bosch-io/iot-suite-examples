@@ -60,7 +60,7 @@ functionblock BLOBUpload {
 ## AWS Lambda
 
 To provide a pre-signed URL to the device we create an AWS Lambda which handles an HTTP POST request containing the
-payload of the `requestUpload` event. In our example we use `application/json` payload.
+payload of the `requestUpload` event. In our example we use an `application/json` payload.
 
 Let's assume the following payload:
 
@@ -82,8 +82,114 @@ The Lambda will respond with the payload of the `triggerUpload` operation.
 }
 ```
 
-TODO: Add Lambda Code
 
+### AWS Setup
+In this section the Lambda function will be set up and configured, 
+so it is ready to serve requests and provision presigned URLs for an S3 bucket.
+
+#### Create S3 bucket
+In this section the S3 bucket where all uploads will be stored is created.
+
+1. Go to https://s3.console.aws.amazon.com/s3 and create a new bucket with a name of your choosing.
+2. Use the default settings, this will create a private bucket nobody has access to. 
+   The policy to allow uploading files will be created in a later section.
+
+
+#### Create Lambda function
+The following steps will create the boilerplate Lambda function using JavaScript and leveraging Node.js.
+
+1. Go to https://eu-central-1.console.aws.amazon.com/lambda
+2. Choose `Create function`
+3. Take `Use a blueprint` and select `microservice-http-endpoint` (tags: `nodejs`, `api-gateway`)
+4. Go to the next page with `Configure`
+5. Configure the function
+    * Set a function name in this example it is `requestUpload`
+    * Choose `Create a new role with basic Lambda permissions`
+    * API Gateway trigger: 
+      * `Create an API`
+      * API type `HTTP API`
+      * security: `Open` (we will add our own security later on), 
+      * Other settings on defaults
+6. Choose `Create function` we will adapt the code in the next step
+   
+#### Configure Lambda function
+Now the actual source code for handling requests and generating the presigned URLs is added.
+
+1. Replace the current content of the Lambda function in `index.js` 
+   with the [provided JavaScript code](src/lambda/index.js).
+2. Adapt line 7 with your S3 bucket name:
+   ```javascript
+   const s3bucket = "bucket-name";
+   ```
+3. Deploy the current version
+4. Below the source code go to `Environment Variables` and choose `Edit`
+   * Generate or use a strong `password` for the authorization (e.g. with `openssl rand -base64 32`)
+   * Choose a `username`
+   * Add an environment Variable with the key `AUTHORIZATION` and the value in basic auth format:
+   `Basic Base64(<username>:<password>)`, for example: `Basic cG9jOnNlY3JldA==`
+5. Retrieve the Lambda HTTP endpoint information by choosing the `API Gateway` in the Designer, 
+   expanding the details and checking the `API endpoint`.
+   ![Finding the API endpoint](img/aws_api_gateway.png)
+
+#### Create and attach bucket policy
+In this section a policy is created which allows uploading to a specific S3 bucket. 
+This policy will be attached to the role of the Lambda.
+The presigned URLs will therefore only be valid for this specific S3 bucket.
+
+1. Go to https://console.aws.amazon.com/iam/home?#/policies
+2. Create a new policy
+3. Use the following settings:
+   * Service: S3
+   * Actions: Write > PutObject
+   * Resources: 
+       * Select Add ARN
+       * Bucket name: The S3 bucket name
+       * Object name: Check Any
+4. Skip the next page (adding tags)
+5. In the last step give the policy a name, e.g. `file-upload-write-only`
+6. In the policy summary verify the policy: ![Policy Json](img/aws_policy.png)
+   
+Attaching the policy to the Lambda role
+1. Go to https://console.aws.amazon.com/iam/home?#/roles
+2. Find and select the Lambda role, it should start with the lambda name (e.g. `RequestUpload-role-...`)
+3. Choose Attach policies
+4. Find and select the policy created above by searching for its name or by filtering for customer managed policies
+5. Choose Attach policy
+
+#### (Optional) Test Lambda function
+Everything is now configured for a first test. `curl` can be used to retrieve a presigned URL from 
+the Lambda endpoint which is valid for one hour to upload a file.
+
+* Replace {LambdaEndpoint} and {Authorization} with the actual 
+  lambda endpoint and the credentials from the section _Configure Lambda function_.
+* Run (you can optionally adapt the `device-id`)
+   ```bash
+   curl --location --request POST "{LambdaEndpoint}" \
+   --header 'Device-Id: namespace-1:device-2' \
+   --header 'Authorization: {Authorization}' \
+   --header 'Content-Type: application/json' \
+   --data-raw '{
+   "blobId": "sample.png",
+   "blobType": "PNG",
+   "additionalInformation": {}
+   }'
+   ```
+* The response should be something like
+    ```json
+    {
+       "uploadURL":"https://bucket-name.s3.eu-central-1.amazonaws.com/...",
+       "blobId":"sample.png",
+       "additionalInfo":{}
+    }
+    ```
+* The uploadURL can be used to test the upload:
+   ```bash
+   curl --location --request PUT "https://bucket-name.s3.eu-central-1.amazonaws.com/..." \
+   --header 'Content-Type: text/plain' \
+   --data-raw 'test-content'
+   ```
+* If you don't get any error, the upload was done successfully. 
+  You can now check the successful upload in the S3 bucket under the key `namespace-1:device-2/sample.png`
 ## Configuration in IoT Things
 
 Now that we have the Lambda, it's time to interact with it. In the following we'll provision a new device and create an
