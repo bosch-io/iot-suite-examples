@@ -114,7 +114,7 @@ func connectHandler(client *ditto.Client) {
 	feature := &model.Feature{}
 
 	cmd := things.NewCommand(model.NewNamespacedIDFrom(deviceID)).Twin().Feature(blobUploadFeatureID).Modify(feature)
-	msg := cmd.Message(protocol.WithResponseRequired(false))
+	msg := cmd.Envelope(protocol.WithResponseRequired(false))
 
 	err := client.Send(msg)
 	if err != nil {
@@ -131,7 +131,7 @@ func sendUploadRequest(filePath string, client *ditto.Client) {
 	msg := things.NewMessage(model.NewNamespacedIDFrom(deviceID)).Feature(blobUploadFeatureID).Outbox("requestUpload").WithPayload(request)
 
 	replyTo := fmt.Sprintf("command/%s", tenantID)
-	err := client.Send(msg.Message(protocol.WithResponseRequired(true), protocol.WithContentType("application/json"), protocol.WithReplyTo(replyTo)))
+	err := client.Send(msg.Envelope(protocol.WithResponseRequired(true), protocol.WithContentType("application/json"), protocol.WithReplyTo(replyTo)))
 
 	if err != nil {
 		log.Printf("Failed to send message for request upload '%v' - %v\n", request, err)
@@ -141,7 +141,7 @@ func sendUploadRequest(filePath string, client *ditto.Client) {
 }
 
 // handler for triggerUpload messages
-func messageHandler(requestID string, msg *protocol.Message) {
+func messageHandler(requestID string, msg *protocol.Envelope) {
 	const triggerUploadPath = "/features/" + blobUploadFeatureID + "/inbox/messages/triggerUpload"
 
 	if model.NewNamespacedID(msg.Topic.Namespace, msg.Topic.EntityID).String() == deviceID {
