@@ -1,13 +1,11 @@
 # File Upload by device
 
 This example shows how to enable a device to upload files to an AWS S3 Bucket without the need of the device to know
-about AWS. The device authentication is guaranteed by the Bosch IoT Hub and all the device needs to know about the S3
+about AWS. The device authentication is guaranteed by the Bosch IoT Suite and all the device needs to know about the S3
 bucket is a [pre-signed URL](https://docs.aws.amazon.com/AmazonS3/latest/userguide/ShareObjectPreSignedURL.html) which
 is provided by a generic command that is sent to the device.
 
-## Architecture
-
-TODO: Add image and short description here.
+![Architecture](img/architecture.png)
 
 ## Vorto Model
 
@@ -15,7 +13,7 @@ This is a simple Vorto model which defines a stateless process for uploading fil
 
 ```
 vortolang 1.0
-namespace vorto.private.poc.blob.upload
+namespace vorto.private.example.bosch.iot.suite.file.upload
 version 1.0.0
 displayname "BLOBUpload"
 description "Functionblock for BLOBUpload"
@@ -190,7 +188,7 @@ the Lambda endpoint which is valid for one hour to upload a file.
    ```
 * If you don't get any error, the upload was done successfully. 
   You can now check the successful upload in the S3 bucket under the key `namespace-1:device-2/sample.png`
-## Configuration in IoT Things
+## Configuration in the Bosch IoT Suite
 
 Now that we have the Lambda, it's time to interact with it. In the following we'll provision a new device and create an
 HTTP Webhook to the AWS Lambda. The last step will be to configure a payload mapping in the connection to IoT Hub which
