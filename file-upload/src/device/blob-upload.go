@@ -149,6 +149,8 @@ func messageHandler(requestID string, msg *protocol.Message) {
 			payload, _ := (msg.Value).(map[string]interface{})
 			filePath, urlStr := payload["blobId"].(string), payload["uploadURL"].(string)
 
+			fmt.Printf("Trigger upload message received for '%v'\n", filePath)
+
 			uploadFile(filePath, urlStr)
 		}
 	}
