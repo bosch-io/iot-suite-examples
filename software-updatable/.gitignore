@@ -1,0 +1,16 @@
+# Binaries for programs and plugins
+*.so
+*.dylib
+
+# Cache directories
+script-agent/src/__pycache__
+
+# IDEs and editors
+/.idea
+.project
+.pydevproject
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
