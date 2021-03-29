@@ -19,6 +19,9 @@ def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
     # Subscribing to a topic that sends install or download command
     client.subscribe(MQTT_TOPIC)
+	
+    # step 3 of this document: https://docs.bosch-iot-suite.com/edge/index.html#109655.htm
+    client.publish('edge/thing/request','',qos=1)
     # hint: to register as agent or operation status, use "e".
 
 
