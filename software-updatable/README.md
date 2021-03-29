@@ -14,13 +14,14 @@ Download the edge agent. Copy the device `provisioning.json` to the directory co
 - Install the following prerequisites.
 
 ```
-yum -y install python3
-yum -y install lua5.1
+sudo apt-get install python3 -y
+sudo apt-get install lua5.1 -y
 alias python=python3
 sudo apt install python3-pip
 pip3 install paho-mqtt python-etcd
+pip3 install --upgrade requests
 ```
-- Run `python python-scripts/start-agent.py`.
+- Run `python script-agent/src/start-agent.py`.
 
 #### b. Running as a docker container
 This approach is not tested. Below are some steps that could be used to achieve this.
