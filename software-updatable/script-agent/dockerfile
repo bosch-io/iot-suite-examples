@@ -10,7 +10,7 @@ FROM python:3.9
 
 ### Add own Entrypoint Script, and other scripts dedicated for each use case of the agent ###
 COPY ./run.sh /run.sh
-COPY ./python-scripts /python-scripts
+COPY ./src /python-scripts
 
 RUN chmod +x /python-scripts/start-agent.py
 

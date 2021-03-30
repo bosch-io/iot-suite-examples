@@ -26,7 +26,7 @@ pip3 install --upgrade requests
 #### b. Running as a docker container
 This approach is not tested. Below are some steps that could be used to achieve this.
 
-* Modify `python-scripts/start-agent.py` to use `ctrhost` as mosquitto host. Ex: ```client.connect("ctrhost", 1883)```
+* Modify `script-agent/src/start-agent.py` to use `ctrhost` as mosquitto host. Ex: ```client.connect("ctrhost", 1883)```
 * Build the dockerfile and push the image to a repository which is publically available.
 * Please see [how to deploy a container](https://docs.bosch-iot-suite.com/edge/index.html#109664.htm). It describes how to remotely trigger installation of containers on gateways in the form of Software Updates from Bosch IoT Suite Rollouts service.
 * In the above step, make sure that you configure `extra_hosts` as shown below.
