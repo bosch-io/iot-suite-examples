@@ -1,0 +1,185 @@
+{
+	"info": {
+		"_postman_id": "eb895463-3394-4e35-8c31-2895ff7e365e",
+		"name": "Suite Performance Measurement",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Measure using feature id",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-clientId",
+						"value": "401a39fc-d53f-4a43-bd22-f5a7812e1856",
+						"type": "text"
+					},
+					{
+						"key": "x-secret",
+						"value": "script-agent-secret",
+						"type": "text"
+					},
+					{
+						"key": "x-serviceInstanceId",
+						"value": "57a7cd73-6e9b-47a1-a9d0-b790488f4e35",
+						"type": "text"
+					},
+					{
+						"key": "x-thingId",
+						"value": "san.edge.demo:san-device",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8080/api/v1/measure/using-feature/5?delay=100",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"measure",
+						"using-feature",
+						"5"
+					],
+					"query": [
+						{
+							"key": "delay",
+							"value": "100"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get status",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/v1/measure/status",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"measure",
+						"status"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Measure using events",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/v1/measure/using-events/50?delay=100",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"measure",
+						"using-events",
+						"50"
+					],
+					"query": [
+						{
+							"key": "delay",
+							"value": "100"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Measure using rest",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/v1/measure/using-rest/50?delay=100&response-url=http://localhost:8080/api/v1/consumer",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"measure",
+						"using-rest",
+						"50"
+					],
+					"query": [
+						{
+							"key": "delay",
+							"value": "100"
+						},
+						{
+							"key": "response-url",
+							"value": "http://localhost:8080/api/v1/consumer"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Simulate http response",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\": \"49316aee1f404617828bd202a6f436f2\",\n    \"expected\": 0,\n    \"current\": 0\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/v1/consumer",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"consumer"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link data-th-href="@{/css/bootstrap.min.css}" rel="stylesheet">
+	<link data-th-href="@{/css/main.css}" rel="stylesheet">
+	</head>
+<body>
+	<div class="container">
+		<div class="row">
+			<div class="col-sm-12">
+				<div id="title">
+					<h1>Bosch Iot Suite: Performance Meter</h1>
+				</div>
+				<h3>Current Results</h3>
+				<table class="table table-striped">
+					<thead>
+						<tr>
+							<th>Name</th>
+							<th>Events Received</th>
+							<th>Total Time Taken</th>
+							<th>Average Time Per Message</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr class="result" th:each="entry : ${allstatus}">
+							<td th:text="${entry.key}">keyvalue</td>
+							<td th:if="${entry?.value}">
+							   <div class="d-flex flex-column align-items-start">
+							   	<div th:class="'text '+${entry?.value?.completed ? 'text-success' : 'text-danger'}">
+									<span th:text="${entry?.value?.received} + ' out of ' + ${entry?.value?.expected}"></span>
+								</div>
+								
+								
+								<span class="badge badge-danger mt-2" th:unless="${entry?.value?.inOrder}">Not
+									in order</span>
+								<span class="badge badge-warning mt-2" th:if="${entry?.value?.duplicatesReceived > 0}" 
+								th:text="'Received ' + ${entry?.value?.duplicatesReceived} + ' duplicates'">Received duplicates</span>
+							   </div>
+							</td>
+							<td th:unless="${entry?.value}">No Data</td>
+
+							<td th:text="${entry?.value?.timeTaken}">Total time</td>
+							<td th:text="${entry?.value?.timePerMessage}">Average time</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+			<div class="col-sm-12">
+				<div id="title">
+					<h3>Schedule A Performance Measurement</h3>
+				</div>
+				<form th:action="@{/trigger}" th:object="${triggerRequest}"
+					method="post">
+					<div class="form-group">
+					    <label>Measurement Type</label>
+					    <select class="form-control" th:field="*{type}">
+						  <option 
+						      th:each="dropdownValue: ${typeOptions}"
+						      th:value="${dropdownValue}"
+						      th:text="${dropdownValue}" ></option>
+						</select>
+					 </div>
+					 
+					<div class="form-group">
+						<label>Number Of Messages</label> 
+						<input type="number" class="form-control" th:field="*{count}" />
+					</div>
+
+					<div class="form-group">
+						<label>Delay Between Messages</label> 
+						<input type="number" class="form-control" th:field="*{delay}" />
+						<small class="form-text text-muted">Value must be entered in milli seconds.</small>
+					</div>
+					
+					<div class="form-group">
+						<label>Response Url</label> 
+						<input type="text" class="form-control" th:field="*{responseUrl}" />
+						<small class="form-text text-muted">Required only while using rest based metering. Ex: http://localhost:8080/api/v1/consumer</small>
+					</div>
+				
+					<p>
+						<input type="submit" value="Submit" class="btn btn-primary" />
+					</p>
+				</form>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
